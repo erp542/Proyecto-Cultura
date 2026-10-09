@@ -1903,17 +1903,15 @@ body {
    ADAPTABILIDAD RESPONSIVE PARA MÓVILES Y TABLETS
    ========================================================================= */
 /* =========================================================================
-   OPTIMIZACIÓN RESPONSIVE DEFINITIVA PARA CELULARES Y TABLETS
+/* =========================================================================
+   OPTIMIZACIÓN RESPONSIVE DEFINITIVA Y CORRECCIÓN DE CORTES INFERIORES
    ========================================================================== */
 
-/* Forzar ocultamiento absoluto de las flechas táctiles ya que se usará toque directo */
 .mobile-dpad {
   display: none !important;
 }
 
-/* Ajustes generales para pantallas pequeñas o dispositivos móviles */
 @media screen and (max-width: 768px) {
-  /* Escalar la intro cinemática del libro para que quepa en pantallas verticales */
   .antique-book-container {
     width: 88vw;
     height: 220px;
@@ -1930,7 +1928,6 @@ body {
     line-height: 1.3;
   }
 
-  /* Ajustar el HUD superior para que no se amontone */
   .game-hud {
     padding: 10px 12px;
   }
@@ -1944,10 +1941,9 @@ body {
   }
 
   .hud-brand p {
-    display: none; /* Ocultar texto secundario en móviles para ahorrar espacio */
+    display: none;
   }
 
-  /* Píldora inferior de controles */
   .hud-controls-hint {
     bottom: 12px;
     left: 12px;
@@ -1960,45 +1956,53 @@ body {
     text-overflow: ellipsis;
   }
 
-  /* Adaptar los altares interactivos y contenedores de minijuegos */
+  /* Contenedores de minijuegos con scroll seguro para evitar cortes */
   .water-cycle-altar {
-    padding: 14px 12px;
-    max-width: 94vw;
+    max-height: 82vh;
+    overflow-y: auto;
+    padding: 16px 10px 30px 10px !important;
+    margin-bottom: 20px;
   }
 
   .altar-track {
     gap: 6px;
-    padding: 10px 8px;
+    padding: 10px 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 30px !important;
   }
 
   .order-slot {
-    width: 62px !important;
-    height: 75px !important;
+    width: 58px !important;
+    height: 70px !important;
+    margin-bottom: 15px;
   }
 
+  /* Evitar corte inferior en las etiquetas de las fases de la Zona 2 */
   .order-slot::after {
-    font-size: 9px;
-    bottom: -18px;
+    font-size: 9px !important;
+    bottom: -26px !important;
+    width: max-content;
   }
 
   .order-card {
-    width: 60px !important;
-    height: 70px !important;
+    width: 56px !important;
+    height: 66px !important;
   }
 
   .card-glyph-icon {
-    font-size: 22px;
+    font-size: 20px;
   }
 
   .card-glyph-title {
-    font-size: 9px;
+    font-size: 8.5px;
   }
 
   .order-cards-pool {
-    gap: 8px;
+    gap: 6px;
+    padding-bottom: 15px;
   }
 
-  /* Ventana de victoria adaptada */
   .victory-box {
     padding: 24px 18px;
     max-width: 92vw;
@@ -2018,7 +2022,6 @@ body {
     padding: 10px;
   }
 
-  /* Minijuego de Búsqueda Nocturna en Celulares */
   .cave-header {
     padding: 10px 14px;
   }
@@ -2041,37 +2044,21 @@ body {
     font-size: 12px;
   }
 
-  /* Asegurar que los objetos de la cueva sean fáciles de pulsar con el dedo */
   .v-item {
     transform: translate(-50%, -50%) scale(1.15) !important;
   }
 }
 
-/* Ajustes específicos para pantallas ultra estrechas (iPhone SE, dispositivos compactos) */
-@media screen and (max-width: 480px) {
-  .page-main-title {
-    font-size: 16px !important;
-  }
-  
-  .altar-header-desc h3 {
-    font-size: 13px;
-  }
-
-  .altar-header-desc p {
-    font-size: 10.5px;
-  }
-}
-
 /* 1. Zona 1: Evitar que el monolito y sus piezas se corten por arriba */
 #zone-1-anchor {
-  top: 15vh;
+  top: 12vh;
   bottom: auto;
 }
 
 .monolith-altar {
   width: 280px;
-  height: 320px;
-  max-height: 50vh;
+  height: 310px;
+  max-height: 48vh;
 }
 
 .monolith-frame {
@@ -2082,65 +2069,35 @@ body {
 .scattered-pieces-container {
   max-height: 22vh;
   overflow-y: auto;
-  padding-bottom: 10px;
+  padding-bottom: 15px;
 }
 
-/* 2. Zona 2 y Altar del Agua: Optimizar área táctil y scroll horizontal si es necesario */
-.water-cycle-altar {
-  max-height: 85vh;
-  overflow-y: auto;
-  padding: 16px 12px;
-}
-
-.altar-track {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* 3. Adaptabilidad total para Teléfonos (Vertical y Horizontal) */
+/* 2. Zona 2 y Altar del Agua: Adaptabilidad móvil horizontal y vertical */
 @media screen and (max-width: 900px) {
-  /* En modo horizontal en celulares (landscape) */
   @media screen and (orientation: landscape) {
     #game-world-container {
       height: 100vh;
     }
     .zone-anchor {
-      bottom: 90px;
+      bottom: 80px;
     }
     .water-cycle-altar {
-      max-height: 75vh;
-      padding: 10px 14px;
+      max-height: 72vh;
+      padding: 10px 14px 25px 14px !important;
     }
     .monolith-altar {
       width: 240px;
-      height: 260px;
+      height: 250px;
     }
   }
 
-  /* En modo vertical en celulares (portrait) */
   @media screen and (orientation: portrait) {
     #zone-1-anchor {
-      top: 12vh;
+      top: 10vh;
     }
     .water-cycle-altar {
       width: 95vw;
-      padding: 12px 8px;
+      padding: 12px 8px 28px 8px !important;
     }
-      /* Asegurar espacio inferior para las etiquetas de las fases en Zona 2 */
-.altar-track {
-  margin-bottom: 25px !important;
-  padding-bottom: 20px !important;
-}
-
-.order-slot {
-  margin-bottom: 10px;
-}
-
-.order-slot::after {
-  bottom: -24px !important;
-  font-size: 10px !important;
-}
   }
 }
-
-
