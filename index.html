@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 
+  <!-- Ruta estricta en minúsculas para compatibilidad total con GitHub Pages (Linux) -->
   <link rel="stylesheet" href="css/style.css">
 
   <!-- GSAP y Draggable locales -->
@@ -20,14 +21,18 @@
 </head>
 <body>
 
-  <!-- 1. INTRO CINEMÁTICA AUTOMÁTICA EN 3D -->
+  <!-- =========================================================================
+       1. INTRO CINEMÁTICA AUTOMÁTICA EN 3D (SIN NINGÚN CLIC)
+       ========================================================================= -->
   <div id="cinematic-intro" aria-label="Introducción Cinemática de la Biblioteca">
     <button id="skip-intro-btn" class="skip-intro-btn" title="Saltar cinemática">Omitir intro ➔</button>
+    
     <div class="library-stage">
       <div class="library-bookshelf bookshelf-left"></div>
       <div class="library-bookshelf bookshelf-right"></div>
       <div class="library-light-beam"></div>
       <div class="library-lectern"></div>
+
       <div class="antique-book-container">
         <div class="antique-book">
           <div class="book-cover">
@@ -41,6 +46,7 @@
               <div class="cover-title">Códice de Vigirima</div>
             </div>
           </div>
+
           <div class="book-pages">
             <div class="book-inner-glow"></div>
             <div class="page-level-badge">Capítulo I</div>
@@ -56,17 +62,22 @@
     </div>
   </div>
 
-  <!-- 2. MUNDO CONTINUO 2.5D DEL VALLE DE VIGIRIMA -->
+  <!-- =========================================================================
+       2. MUNDO CONTINUO 2.5D DEL VALLE DE VIGIRIMA (EXPLORABLE 4200px)
+       ========================================================================= -->
   <div id="game-world-container">
+    
     <div class="parallax-layer" id="layer-sky">
       <canvas id="stars-canvas" class="stars-canvas"></canvas>
       <div class="moon"></div>
     </div>
+
     <div class="parallax-layer" id="layer-mountains-back"></div>
     <div class="parallax-layer" id="layer-mountains-mid"></div>
     <div class="mist-layer"></div>
 
     <div id="world-stage" style="width: 4200px;">
+      
       <div class="ground-surface" style="width: 4200px;">
         <div class="ground-grass"></div>
       </div>
@@ -92,6 +103,7 @@
       <!-- ZONA 1 – EL MONOLITO PRINCIPAL -->
       <div class="zone-anchor" id="zone-1-anchor">
         <div class="zone-marker-title">Zona I: El Monolito de la Diosa de las Lluvias</div>
+        
         <div class="monolith-altar">
           <div class="monolith-frame" id="monolith-frame">
             <div class="monolith-ghost-preview">
@@ -105,12 +117,14 @@
             </div>
           </div>
         </div>
+
         <div class="scattered-pieces-container" id="zone1-scattered-pieces"></div>
       </div>
 
       <!-- ZONA 2 – EL SECTOR OESTE (ALTAR Y CARRIL DEL CICLO DEL AGUA) -->
       <div class="zone-anchor" id="zone-2-anchor" style="left: 1800px;">
         <div class="zone-marker-title">Zona II: Altar del Ciclo del Agua Sagrada</div>
+        
         <div class="water-cycle-altar" id="water-cycle-altar">
           <div class="altar-header-desc">
             <span class="altar-icon">💧</span>
@@ -119,17 +133,31 @@
               <p>Arrastra las piedras al carril ceremonial en el orden natural del ciclo pluvial prehispánico.</p>
             </div>
           </div>
-          <div class="altar-track" id="order-track"></div>
+
+          <div class="altar-track" id="order-track">
+            <div class="order-slot" data-pos="1" data-label="Fase I"><div class="slot-number">I</div></div>
+            <div class="track-arrow">➔</div>
+            <div class="order-slot" data-pos="2" data-label="Fase II"><div class="slot-number">II</div></div>
+            <div class="track-arrow">➔</div>
+            <div class="order-slot" data-pos="3" data-label="Fase III"><div class="slot-number">III</div></div>
+            <div class="track-arrow">➔</div>
+            <div class="order-slot" data-pos="4" data-label="Fase IV"><div class="slot-number">IV</div></div>
+            <div class="track-arrow">➔</div>
+            <div class="order-slot" data-pos="5" data-label="Fase V"><div class="slot-number">V</div></div>
+          </div>
+
           <div class="altar-aqueduct-groove" id="altar-aqueduct-groove">
             <div class="aqueduct-water-fill" id="aqueduct-water-fill"></div>
           </div>
+
           <div class="order-cards-pool" id="order-cards-pool"></div>
         </div>
       </div>
 
-      <!-- ZONA 3 – ENTRADA AL ABRIGO ROCOSO -->
+      <!-- ZONA 3 – ENTRADA AL ABRIGO ROCOSO ANCESTRAL -->
       <div class="zone-anchor cave-shelter-anchor" id="zone-3-anchor" style="left: 3550px;">
         <div class="zone-marker-title">Zona III: Abrigo Rocoso de Piedra Pintada</div>
+
         <div class="cave-entrance-structure" id="cave-entrance-portal">
           <div class="cave-cliff-arch">
             <div class="cave-dark-interior">
@@ -140,6 +168,7 @@
             <div class="cave-rock-flank right"></div>
             <div class="cave-arch-glyphtext">PETROGLIFOS OCULTOS • ENTRADA</div>
           </div>
+
           <div class="archaeo-camp-station">
             <div class="camp-lantern">🏮</div>
             <div class="camp-board">
@@ -156,7 +185,7 @@
     </div>
   </div>
 
-  <!-- HUD Y CONTROLES MÓVILES -->
+  <!-- HUD Y CONTROLES -->
   <div class="hud-controls-hint">
     <span>Moverse:</span>
     <span class="key-tag">A</span> <span class="key-tag">D</span> o <span class="key-tag">◄</span> <span class="key-tag">►</span>
@@ -176,17 +205,35 @@
     </div>
   </div>
 
+  <div id="spirit-attack-overlay" class="spirit-attack-overlay">
+    <div class="spirit-demon-visual">
+      <svg viewBox="0 0 120 120" class="spirit-demon-svg">
+        <circle cx="60" cy="60" r="50" fill="#200000" stroke="#ff2200" stroke-width="4"/>
+        <path d="M 30 20 L 45 45 M 90 20 L 75 45" stroke="#ff4400" stroke-width="6" stroke-linecap="round"/>
+        <polygon points="40,55 50,45 60,55" fill="#ff0000"/>
+        <polygon points="80,55 70,45 60,55" fill="#ff0000"/>
+        <ellipse cx="45" cy="52" rx="7" ry="5" fill="#fff"/>
+        <ellipse cx="75" cy="52" rx="7" ry="5" fill="#fff"/>
+        <circle cx="45" cy="52" r="3" fill="#000"/>
+        <circle cx="75" cy="52" r="3" fill="#000"/>
+        <path d="M 35 75 Q 60 95 85 75" fill="none" stroke="#ff2200" stroke-width="5"/>
+      </svg>
+    </div>
+    <div class="spirit-attack-message" id="spirit-attack-message">¡EL ESPÍRITU DE LA SEQUÍA TE ATACA!</div>
+  </div>
+
   <div id="victory-modal" role="dialog" aria-modal="true">
     <div class="victory-box">
       <h2 class="victory-title">¡Nivel 1 Completado con Éxito!</h2>
       <p class="victory-desc">Has restaurado la Diosa de las Lluvias y consagrado el Ciclo Sagrado del Agua.</p>
       <div style="display: flex; justify-content: center; gap: 14px;">
+        <button class="hud-btn" id="victory-explore-btn">✦ Explorar el Valle Libremente</button>
         <button class="hud-btn" id="victory-restart-btn">↺ Volver a Jugar</button>
       </div>
     </div>
   </div>
 
-  <!-- ÚNICO SCRIPT MAESTRO UNIFICADO -->
+  <!-- SCRIPT MAESTRO UNIFICADO -->
   <script src="js/bundle2d.js"></script>
 </body>
 </html>
