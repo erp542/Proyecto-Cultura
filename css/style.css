@@ -2126,13 +2126,21 @@ body {
       width: 95vw;
       padding: 12px 8px;
     }
-    .order-slot {
-      width: 55px !important;
-      height: 65px !important;
-    }
-    .order-card {
-      width: 52px !important;
-      height: 62px !important;
-    }
+      /* Asegurar espacio inferior para las etiquetas de las fases en Zona 2 */
+.altar-track {
+  margin-bottom: 25px !important;
+  padding-bottom: 20px !important;
+}
+
+.order-slot {
+  margin-bottom: 10px;
+}
+
+.order-slot::after {
+  bottom: -24px !important;
+  font-size: 10px !important;
+}
   }
 }
+
+
