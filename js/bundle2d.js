@@ -301,9 +301,10 @@
         el.innerHTML = `<div style="position:absolute;width:280px;height:280px;transform:translate(${ox}px,${oy}px);pointer-events:none;">${this.getDiosaSVG()}</div>`;
         cont.appendChild(el);
 
-        if (typeof Draggable !== "undefined") {
+  if (typeof Draggable !== "undefined") {
           Draggable.create(el, {
             type: "x,y",
+            allowEventDefault: true, // <-- ASEGÚRATE DE TENER ESTA LÍNEA
             onPress: () => { sound.resume(); sound.drag(); el.classList.add("dragging"); },
             onRelease: function () {
               el.classList.remove("dragging");
@@ -388,9 +389,10 @@
         card.style.cssText = "width:100px;height:110px;background:linear-gradient(145deg,#3a2e20,#221810);border:2px solid #c9a227;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;color:#e5b253;";
         pool.appendChild(card);
 
-        if (typeof Draggable !== "undefined") {
+  if (typeof Draggable !== "undefined") {
           Draggable.create(card, {
             type: "x,y",
+            allowEventDefault: true, // <-- ASEGÚRATE DE TENER ESTA LÍNEA
             onPress: () => { sound.resume(); sound.drag(); },
             onRelease: function () {
               let placed = false;
