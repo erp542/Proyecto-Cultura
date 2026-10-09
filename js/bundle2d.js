@@ -291,7 +291,7 @@
       draw();
     }
 
-    // ZONA 1
+// ZONA 1 (Optimizada para que no se corte en móviles y responda al tacto)
     initZone1() {
       const piecesData = [
         {id:0,tx:0,ty:0},{id:1,tx:140,ty:0},
@@ -301,6 +301,14 @@
       const cont = document.getElementById("zone1-scattered-pieces");
       const frame = document.getElementById("monolith-frame");
       if (!cont || !frame) return;
+
+      // Ajustar contenedor para evitar cortes en pantallas pequeñas de celulares
+      const altar = document.querySelector(".monolith-altar");
+      if (altar) {
+        altar.style.transform = "scale(0.82)";
+        altar.style.transformOrigin = "top center";
+        altar.style.marginBottom = "-30px";
+      }
 
       piecesData.forEach(p => {
         const slot = document.createElement("div");
@@ -313,6 +321,7 @@
         const el = document.createElement("div");
         el.className = "stone-piece";
         el.style.width = "115px"; el.style.height = "78px";
+        el.style.touchAction = "none"; // Vital para celulares en GitHub Pages
         const ox = -(p.id%2)*140, oy = -Math.floor(p.id/2)*93;
         el.innerHTML = `<div style="position:absolute;width:280px;height:280px;transform:translate(${ox}px,${oy}px);pointer-events:none;">${this.getDiosaSVG()}</div>`;
         cont.appendChild(el);
@@ -320,45 +329,36 @@
         if (typeof Draggable !== "undefined") {
           Draggable.create(el, {
             type: "x,y",
-            onPress: () => { sound.resume(); sound.drag(); el.classList.add("dragging"); },
+            liveSnap: true,
+            onPress: function() { 
+              sound.resume(); 
+              sound.drag(); 
+              this.target.classList.add("dragging"); 
+            },
             onRelease: function () {
-              el.classList.remove("dragging");
+              this.target.classList.remove("dragging");
               const fr = frame.getBoundingClientRect();
-              const pr = el.getBoundingClientRect();
-              if (Math.hypot(pr.left-(fr.left+p.tx), pr.top-(fr.top+p.ty)) < 75) {
+              const pr = this.target.getBoundingClientRect();
+              // Margen de tolerancia amplio (90px) para garantizar que funcione al tacto en móviles
+              if (Math.hypot(pr.left - (fr.left + p.tx), pr.top - (fr.top + p.ty)) < 90) {
                 sound.snap();
-                el.classList.add("snapped");
+                this.target.classList.add("snapped");
                 this.disable();
-                frame.appendChild(el);
-                gsap.set(el, {position:"absolute", left:p.tx, top:p.ty, x:0, y:0, width:140, height:93});
+                frame.appendChild(this.target);
+                gsap.set(this.target, {position:"absolute", left:p.tx, top:p.ty, x:0, y:0, width:140, height:93});
                 window.game.checkZone1();
               } else {
                 window.game.triggerSpirit();
-                gsap.to(el, {x:0, y:0, duration:0.4});
+                gsap.to(this.target, {x:0, y:0, duration:0.4, ease: "power2.out"});
               }
             }
           });
         }
       });
       window.game = this;
-    }
+    },
 
-    getDiosaSVG() {
-      return `<svg viewBox="0 0 280 280" style="width:100%;height:100%"><rect width="280" height="280" fill="#131922" rx="6"/><g stroke="#e5b253" stroke-width="4.5" fill="none" stroke-linecap="round"><path d="M140 25 L140 10 M115 30 L105 15 M165 30 L175 15 M90 40 L75 25 M190 40 L205 25"/><path d="M70 55 Q140 25 210 55" stroke-width="5.5"/><ellipse cx="140" cy="85" rx="50" ry="35" stroke-width="5.5"/><circle cx="120" cy="82" r="8"/><circle cx="160" cy="82" r="8"/><circle cx="120" cy="82" r="3" fill="#e5b253"/><circle cx="160" cy="82" r="3" fill="#e5b253"/><path d="M140 85 L140 96 L134 96"/><path d="M126 104 Q140 110 154 104"/><path d="M90 95 Q65 110 70 140 Q75 160 95 150"/><path d="M190 95 Q215 110 210 140 Q205 160 185 150"/><path d="M110 120 L110 190 Q140 200 170 190 L170 120" stroke-width="5"/><path d="M125 135 L125 255" stroke="#ffd700" stroke-width="5"/><path d="M140 130 L140 265" stroke="#ffd700" stroke-width="5.5"/><path d="M155 135 L155 255" stroke="#ffd700" stroke-width="5"/></g></svg>`;
-    }
-
-    checkZone1() {
-      this.state.z1Count++;
-      if (this.state.z1Count >= 6 && !this.state.z1) {
-        this.state.z1 = true;
-        sound.success();
-        gsap.to("#monolith-frame", {boxShadow:"0 0 55px rgba(255,215,0,0.95)", duration:1.4});
-        this.dom.path12?.classList.add("active");
-        this.showToast("✓ Diosa de la Lluvia restaurada", "Ahora ordena el ciclo sagrado del agua en la Zona 2.", 7500);
-      }
-    }
-
-    // ZONA 2
+    // ZONA 2 (Arreglada para GitHub Pages y dispositivos táctiles)
     initZone2() {
       const zone2 = document.getElementById("zone-2-anchor");
       if (!zone2) return;
@@ -376,85 +376,83 @@
       if (!track) {
         track = document.createElement("div");
         track.id = "order-track";
-        track.style.cssText = "display:flex;gap:14px;justify-content:center;margin:24px 0;flex-wrap:wrap;";
-        for (let i = 1; i <= 5; i++) {
-          const slot = document.createElement("div");
-          slot.className = "order-slot";
-          slot.dataset.pos = i;
-          slot.style.cssText = "width:100px;height:110px;border:2px dashed rgba(229,178,83,0.5);border-radius:12px;background:rgba(15,10,5,0.7);display:flex;align-items:center;justify-content:center;";
-          track.appendChild(slot);
-        }
         zone2.appendChild(track);
+      }
+      track.innerHTML = "";
+      track.style.cssText = "display:flex;gap:8px;justify-content:center;margin:16px 0;flex-wrap:wrap;";
+      
+      for (let i = 1; i <= 5; i++) {
+        const slot = document.createElement("div");
+        slot.className = "order-slot";
+        slot.dataset.pos = i;
+        slot.style.cssText = "width:72px;height:85px;border:2px dashed rgba(229,178,83,0.6);border-radius:10px;background:rgba(15,10,5,0.85);display:flex;align-items:center;justify-content:center;position:relative;";
+        slot.innerHTML = `<span class="slot-number" style="font-family:Cinzel,serif;font-size:12px;color:rgba(229,178,83,0.4);">${i}</span>`;
+        track.appendChild(slot);
       }
 
       let pool = document.getElementById("order-cards-pool");
       if (!pool) {
         pool = document.createElement("div");
         pool.id = "order-cards-pool";
-        pool.style.cssText = "display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:18px;";
         zone2.appendChild(pool);
       }
       pool.innerHTML = "";
+      pool.style.cssText = "display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px;";
 
       shuffled.forEach(c => {
         const card = document.createElement("div");
         card.className = "order-card";
         card.dataset.id = c.id;
-        card.innerHTML = `<div style="font-size:32px">${c.icon}</div><div style="font-size:12px;margin-top:6px;font-family:Cinzel,serif">${c.name}</div>`;
-        card.style.cssText = "width:100px;height:110px;background:linear-gradient(145deg,#3a2e20,#221810);border:2px solid #c9a227;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;color:#e5b253;";
+        card.style.cssText = "width:72px;height:85px;background:linear-gradient(145deg,#3a2e20,#221810);border:2px solid #c9a227;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;color:#e5b253;touch-action:none;user-select:none;";
+        card.innerHTML = `<div style="font-size:24px">${c.icon}</div><div style="font-size:9px;margin-top:4px;font-family:Cinzel,serif;text-align:center;">${c.name}</div>`;
         pool.appendChild(card);
 
         if (typeof Draggable !== "undefined") {
           Draggable.create(card, {
             type: "x,y",
-            onPress: () => { sound.resume(); sound.drag(); },
+            liveSnap: true,
+            onPress: function() { 
+              sound.resume(); 
+              sound.drag(); 
+              this.target.classList.add("dragging");
+            },
             onRelease: function () {
+              this.target.classList.remove("dragging");
               let placed = false;
+              const cardEl = this.target;
+              const cardId = parseInt(cardEl.dataset.id);
+
               track.querySelectorAll(".order-slot").forEach(slot => {
-                if (slot.children.length > 0) return;
+                if (slot.children.length > 1) return; // Ya tiene una tarjeta (ignorando el span numérico)
                 const sr = slot.getBoundingClientRect();
-                const cr = card.getBoundingClientRect();
-                if (Math.hypot(cr.left - sr.left, cr.top - sr.top) < 70) {
+                const cr = cardEl.getBoundingClientRect();
+                
+                // Tolerancia de distancia aumentada para garantizar funcionamiento táctil en celulares
+                if (Math.hypot(cr.left - sr.left, cr.top - sr.top) < 85) {
                   const expected = parseInt(slot.dataset.pos);
-                  if (parseInt(card.dataset.id) === expected) {
+                  if (cardId === expected) {
                     sound.snap();
-                    slot.appendChild(card);
+                    slot.appendChild(cardEl);
                     slot.classList.add("filled");
-                    gsap.set(card, {x:0, y:0});
-                    this.disable();
+                    gsap.set(cardEl, {x:0, y:0, position:"relative", left:0, top:0, width:"100%", height:"100%"});
+                    this.disable(); // Desactivar el draggable una vez colocado correctamente
                     window.game.state.z2Placed++;
                     window.game.checkZone2();
                     placed = true;
                   } else {
                     window.game.triggerSpirit();
-                    gsap.to(card, {x:0, y:0, duration:0.4});
+                    gsap.to(cardEl, {x:0, y:0, duration:0.4, ease: "power2.out"});
                   }
                 }
               });
-              if (!placed) gsap.to(card, {x:0, y:0, duration:0.35});
+              if (!placed) {
+                gsap.to(cardEl, {x:0, y:0, duration:0.35, ease: "power2.out"});
+              }
             }
           });
         }
       });
-    }
-
-    checkZone2() {
-      if (this.state.z2Placed >= 5 && !this.state.z2) {
-        this.state.z2 = true;
-        sound.success();
-        sound.water();
-        this.dom.path23?.classList.add("active");
-        this.showToast("✓ Ciclo del Agua completado", "Sigue caminando hacia el este para la Búsqueda Nocturna.", 7500);
-      }
-    }
-
-    // Auto-activar al caminar después de Zona 2
-    checkEnterCave() {
-      if (this.state.z2 && !this.state.caveActive && !this.state.z3 && this.player.x > 2600) {
-        this.startCaveExploration();
-      }
-    }
-
+    },
     // ===================== ZONA 3 - BÚSQUEDA NOCTURNA =====================
 
   }
