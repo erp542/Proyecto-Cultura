@@ -158,6 +158,22 @@
           this.startCaveExploration();
         }
       });
+      // --- CONTROLES TÁCTILES D-PAD PARA CELULARES ---
+      const btnLeft = document.getElementById("dpad-left");
+      const btnRight = document.getElementById("dpad-right");
+
+      if (btnLeft) {
+        btnLeft.addEventListener("touchstart", (e) => { e.preventDefault(); this.keys.left = true; this.player.targetX = null; });
+        btnLeft.addEventListener("touchend", () => { this.keys.left = false; });
+        btnLeft.addEventListener("mousedown", () => { this.keys.left = true; this.player.targetX = null; });
+        btnLeft.addEventListener("mouseup", () => { this.keys.left = false; });
+      }
+      if (btnRight) {
+        btnRight.addEventListener("touchstart", (e) => { e.preventDefault(); this.keys.right = true; this.player.targetX = null; });
+        btnRight.addEventListener("touchend", () => { this.keys.right = false; });
+        btnRight.addEventListener("mousedown", () => { this.keys.right = true; this.player.targetX = null; });
+        btnRight.addEventListener("mouseup", () => { this.keys.right = false; });
+      }
     }
 
     startIntro() {
