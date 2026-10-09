@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#06090e">
+  <meta name="description" content="El Despertar de Vigirima: Prototipo Interactivo 2.5D de Arte Rupestre Venezolano - Parque Arqueológico Piedra Pintada, Municipio Guacara, Estado Carabobo.">
+  <title>El Despertar de Vigirima | Exploración 2.5D y Batalla Ancestral</title>
+
+  <!-- Google Fonts de alta estética -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- GSAP y Draggable locales (con respaldo CDN si es necesario) -->
+  <script src="js/gsap.min.js"></script>
+  <script src="js/Draggable.min.js"></script>
+</head>
+<body>
+
+  <!-- =========================================================================
+       1. INTRO CINEMÁTICA AUTOMÁTICA EN 3D (SIN NINGÚN CLIC)
+       ========================================================================= -->
+  <div id="cinematic-intro" aria-label="Introducción Cinemática de la Biblioteca">
+    <button id="skip-intro-btn" class="skip-intro-btn" title="Saltar cinemática">Omitir intro ➔</button>
+    
+    <div class="library-stage">
+      <!-- Estanterías clásicas oscuras con perspectiva 3D -->
+      <div class="library-bookshelf bookshelf-left"></div>
+      <div class="library-bookshelf bookshelf-right"></div>
+      
+      <!-- Haz de luz cálida cenital -->
+      <div class="library-light-beam"></div>
+      
+      <!-- Atril de madera tallada en el centro -->
+      <div class="library-lectern"></div>
+
+      <!-- Gran Libro Antiguo que se abre solo con animación 3D -->
+      <div class="antique-book-container">
+        <div class="antique-book">
+          <!-- Tapa exterior que rota en 3D -->
+          <div class="book-cover">
+            <div class="book-filigree">
+              <svg class="cover-glyph" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="4">
+                <circle cx="50" cy="50" r="40" stroke-dasharray="6 4"/>
+                <ellipse cx="50" cy="40" rx="22" ry="16"/>
+                <path d="M 50 40 L 50 48 M 44 54 Q 50 58 56 54"/>
+                <path d="M 40 58 L 40 85 M 50 58 L 50 88 M 60 58 L 60 85" stroke-width="3.5"/>
+              </svg>
+              <div class="cover-title">Códice de Vigirima</div>
+            </div>
+          </div>
+
+          <!-- Páginas interiores que revelan el título del Nivel 1 -->
+          <div class="book-pages">
+            <div class="book-inner-glow"></div>
+            <div class="page-level-badge">Capítulo I</div>
+            <h1 class="page-main-title">Nivel 1: El Despertar de Vigirima</h1>
+            <div class="page-location-tag">Parque Arqueológico Piedra Pintada • Guacara, Carabobo</div>
+            <div class="page-ornament">✦</div>
+            <p style="font-size: 11.5px; color: #5a4835; font-style: italic;">
+              "Donde las piedras guardan el eco de las lluvias y la voz de los ancestros..."
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       2. MUNDO CONTINUO 2.5D DEL VALLE DE VIGIRIMA (EXPLORABLE 4800px)
+       ========================================================================= -->
+  <div id="game-world-container">
+    
+    <!-- Capa 0: Cielo Estrellado y Luna de Guacara -->
+    <div class="parallax-layer" id="layer-sky">
+      <canvas id="stars-canvas" class="stars-canvas"></canvas>
+      <div class="moon"></div>
+    </div>
+
+    <!-- Capa 1: Cordillera de la Costa (Montañas Lejanas) -->
+    <div class="parallax-layer" id="layer-mountains-back"></div>
+
+    <!-- Capa 2: Colinas Medias y Siluetas de Bosque -->
+    <div class="parallax-layer" id="layer-mountains-mid"></div>
+
+    <!-- Niebla ambiental sutil -->
+    <div class="mist-layer"></div>
+
+    <!-- Capa 3: Escenario Jugable Continuo (4800px) -->
+    <div id="world-stage" style="width: 4200px;">
+      
+      <!-- Suelo de piedra y vegetación -->
+      <div class="ground-surface" style="width: 4200px;">
+        <div class="ground-grass"></div>
+      </div>
+
+      <!-- Senderos Luminosos que se activan al resolver cada reto -->
+      <div class="luminous-path" id="path-zone1-to-2"></div>
+      <div class="luminous-path" id="path-zone2-to-3"></div>
+
+      <!-- Avatar del Jugador (Explorador con Linterna) -->
+      <div id="player-avatar" aria-label="Explorador">
+        <div class="player-sprite">
+          <div class="player-torch-halo"></div>
+          <div class="player-hat"></div>
+          <div class="player-head"></div>
+          <div class="player-body"></div>
+          <div class="player-lantern"></div>
+          <div class="player-legs">
+            <div class="leg leg-left"></div>
+            <div class="leg leg-right"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- -------------------------------------------------------------------
+           ZONA 1 – EL MONOLITO PRINCIPAL (RETO DE ENSAMBLAJE DE PIEZAS)
+           ------------------------------------------------------------------- -->
+      <div class="zone-anchor" id="zone-1-anchor">
+        <div class="zone-marker-title">Zona I: El Monolito de la Diosa de las Lluvias</div>
+        
+        <div class="monolith-altar">
+          <div class="monolith-frame" id="monolith-frame">
+            <!-- Vista fantasma de guía para ensamble -->
+            <div class="monolith-ghost-preview">
+              <svg viewBox="0 0 280 280" style="width:100%; height:100%;">
+                <g stroke="#e5b253" stroke-width="2" stroke-linecap="round" fill="none">
+                  <ellipse cx="140" cy="85" rx="50" ry="35"/>
+                  <path d="M 70 55 Q 140 25 210 55"/>
+                  <path d="M 125 135 L 125 255 M 140 130 L 140 265 M 155 135 L 155 255"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contenedor de piezas dispersas en el suelo -->
+        <div class="scattered-pieces-container" id="zone1-scattered-pieces">
+          <!-- Piezas inyectadas dinámicamente -->
+        </div>
+      </div>
+
+      <!-- -------------------------------------------------------------------
+           ZONA 2 – EL SECTOR OESTE (ALTAR Y CARRIL DEL CICLO DEL AGUA)
+           ------------------------------------------------------------------- -->
+      <div class="zone-anchor" id="zone-2-anchor" style="left: 1800px;">
+        <div class="zone-marker-title">Zona II: Altar del Ciclo del Agua Sagrada</div>
+        
+        <div class="water-cycle-altar" id="water-cycle-altar">
+          <div class="altar-header-desc">
+            <span class="altar-icon">💧</span>
+            <div>
+              <h3>Ordena las Etapas del Ciclo Agrícola</h3>
+              <p>Arrastra las piedras al carril ceremonial en el orden natural del ciclo pluvial prehispánico.</p>
+            </div>
+          </div>
+
+          <!-- Carril Ritual de Piedra con 5 Receptáculos Claros (Sin nombres para que el jugador deduzca) -->
+          <div class="altar-track" id="order-track">
+            <div class="order-slot" data-pos="1" data-label="Fase I">
+              <div class="slot-number">I</div>
+            </div>
+            <div class="track-arrow">➔</div>
+            <div class="order-slot" data-pos="2" data-label="Fase II">
+              <div class="slot-number">II</div>
+            </div>
+            <div class="track-arrow">➔</div>
+            <div class="order-slot" data-pos="3" data-label="Fase III">
+              <div class="slot-number">III</div>
+            </div>
+            <div class="track-arrow">➔</div>
+            <div class="order-slot" data-pos="4" data-label="Fase IV">
+              <div class="slot-number">IV</div>
+            </div>
+            <div class="track-arrow">➔</div>
+            <div class="order-slot" data-pos="5" data-label="Fase V">
+              <div class="slot-number">V</div>
+            </div>
+          </div>
+
+          <!-- Acueducto sagrado que se llena de agua -->
+          <div class="altar-aqueduct-groove" id="altar-aqueduct-groove">
+            <div class="aqueduct-water-fill" id="aqueduct-water-fill"></div>
+          </div>
+
+          <!-- Banco de Piedras Sagradas Desordenadas -->
+          <div class="order-cards-pool" id="order-cards-pool">
+            <!-- Piezas inyectadas dinámicamente -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Monolito de Advertencia Previo a la Zona 3 (Expedición Arqueológica) -->
+      <div class="warning-monolith expedition-monolith" id="expedition-monolith" style="left: 3000px;">
+        <div class="warning-rune" style="color: var(--gold-primary);">🔦</div>
+        <div class="warning-text">
+          ABRIGO ROCOSO DE PIEDRA PINTADA<br>
+          <span style="color: #ffd700; font-style: italic;">"Expedición Nocturna: En la oscuridad del abrigo rocoso, ciertos petroglifos solo revelan sus secretos con luz rasante. Adéntrate para buscar las 3 herramientas ancestrales en 360°."</span>
+        </div>
+      </div>
+
+      <!-- -------------------------------------------------------------------
+           ZONA 3 – ENTRADA AL ABRIGO ROCOSO ANCESTRAL (EXPEDICIÓN NOCTURNA)
+           ------------------------------------------------------------------- -->
+      <div class="zone-anchor cave-shelter-anchor" id="zone-3-anchor" style="left: 3550px;">
+        <div class="zone-marker-title">Zona III: Abrigo Rocoso de Piedra Pintada</div>
+
+        <!-- Portal y Estación Arqueológica del Abrigo Rocoso -->
+        <div class="cave-entrance-structure" id="cave-entrance-portal">
+          <div class="cave-cliff-arch">
+            <div class="cave-dark-interior">
+              <div class="cave-interior-mist"></div>
+              <div class="cave-interior-rune">✨</div>
+            </div>
+            <div class="cave-rock-flank left"></div>
+            <div class="cave-rock-flank right"></div>
+            <div class="cave-arch-glyphtext">PETROGLIFOS OCULTOS • ENTRADA</div>
+          </div>
+
+          <!-- Estación Arqueológica de Campo -->
+          <div class="archaeo-camp-station">
+            <div class="camp-lantern">🏮</div>
+            <div class="camp-board">
+              <div class="camp-title">Búsqueda Arqueológica Nocturna</div>
+              <div class="camp-desc">Vista en 1ª Persona (360°) con Linterna • Encuentra 3 piezas indígenas auténticas</div>
+              <button class="hud-btn enter-cave-btn" id="btn-enter-cave">
+                <span>🔦</span><span>Iniciar Búsqueda Nocturna con Linterna</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       3. HUD DEL JUEGO (ESTADO, AMULETOS Y BARRA DEL JEFE)
+       ========================================================================= -->
+  <!-- ==================== MINIJUEGO ZONA 3: BÚSQUEDA NOCTURNA 360° ==================== -->
+<div id="cave-exploration" class="cave-overlay">
+
+  <!-- HUD superior -->
+  <div class="cave-header">
+    <div class="cave-title-block">
+      <div class="cave-title">🔦 Búsqueda Arqueológica Nocturna</div>
+      <div class="cave-subtitle">Abrigo Rocoso de Vigirima • Vista en Primera Persona</div>
+    </div>
+    <div class="cave-hud-center">
+      <div class="cave-timer-wrap">
+        <div class="cave-timer-label">TIEMPO</div>
+        <div class="cave-timer" id="cave-timer">01:30</div>
+      </div>
+    </div>
+    <div class="cave-progress-block">
+      <div class="cave-progress-label">PIEZAS HALLADAS</div>
+      <div class="cave-progress-dots" id="cave-progress-dots">
+        <span class="prog-dot" id="pdot-1"></span>
+        <span class="prog-dot" id="pdot-2"></span>
+        <span class="prog-dot" id="pdot-3"></span>
+      </div>
+      <div class="cave-progress">Encontrados: <span id="cave-found">0</span> / 3</div>
+    </div>
+  </div>
+
+  <!-- Barra de panorama: indica cuánto has girado -->
+  <div class="panorama-compass" id="panorama-compass">
+    <div class="compass-strip">
+      <span>◄ OESTE</span>
+      <span>NORTE ↑</span>
+      <span>ESTE ►</span>
+      <span>SUR ↓</span>
+      <span>OESTE ◄</span>
+    </div>
+    <div class="compass-marker" id="compass-marker"></div>
+  </div>
+
+  <!-- ESCENA PANORÁMICA 360° -->
+  <div class="cave-panorama-wrapper" id="cave-panorama-wrapper">
+    <div class="cave-panorama" id="cave-panorama">
+
+      <!-- === FONDO: Paredes del abrigo rocoso (SVG panorámico) === -->
+      <div class="cave-bg-wall">
+        <!-- Textura rocosa con gradientes y petroglifos decorativos -->
+        <svg class="cave-wall-svg" viewBox="0 0 3200 600" preserveAspectRatio="none">
+          <defs>
+            <radialGradient id="wallGrad1" cx="20%" cy="80%"><stop offset="0%" stop-color="#2a1f14"/><stop offset="100%" stop-color="#0d0a07"/></radialGradient>
+            <radialGradient id="wallGrad2" cx="60%" cy="70%"><stop offset="0%" stop-color="#231a10"/><stop offset="100%" stop-color="#080604"/></radialGradient>
+            <radialGradient id="wallGrad3" cx="90%" cy="75%"><stop offset="0%" stop-color="#1e170e"/><stop offset="100%" stop-color="#060504"/></radialGradient>
+          </defs>
+          <!-- Sección 0° - Norte / Muro principal -->
+          <rect x="0" y="0" width="800" height="600" fill="url(#wallGrad1)"/>
+          <path d="M0 600 Q80 380 160 420 Q240 350 320 400 Q400 320 480 380 Q560 300 640 370 Q720 340 800 390 L800 600Z" fill="#14100c"/>
+          <!-- Rocas salientes Norte -->
+          <ellipse cx="200" cy="420" rx="180" ry="80" fill="#1c150f" opacity="0.8"/>
+          <ellipse cx="650" cy="390" rx="140" ry="65" fill="#171109" opacity="0.7"/>
+          <!-- Petroglifo decorativo en la pared Norte (trazo guía) -->
+          <g stroke="#3d2f1a" stroke-width="2.5" fill="none" opacity="0.35" transform="translate(340,230)">
+            <circle cx="0" cy="0" r="35"/>
+            <line x1="0" y1="-35" x2="0" y2="-55"/>
+            <line x1="25" y1="-25" x2="40" y2="-40"/>
+            <line x1="-25" y1="-25" x2="-40" y2="-40"/>
+          </g>
+
+          <!-- Sección 90° - Este -->
+          <rect x="800" y="0" width="800" height="600" fill="url(#wallGrad2)"/>
+          <path d="M800 600 Q880 400 960 450 Q1040 360 1120 420 Q1200 370 1280 410 Q1360 330 1440 400 Q1520 360 1600 420 L1600 600Z" fill="#100d09"/>
+          <ellipse cx="1050" cy="440" rx="200" ry="90" fill="#1a130d" opacity="0.75"/>
+          <ellipse cx="1380" cy="410" rx="160" ry="70" fill="#130f0b" opacity="0.65"/>
+          <!-- Espiral de agua en muro Este -->
+          <g stroke="#2e2415" stroke-width="2" fill="none" opacity="0.3" transform="translate(1200,260)">
+            <path d="M0 0 A20 20 0 1 1 -20 0 A30 30 0 1 0 30 0 A40 40 0 1 1 -40 0"/>
+          </g>
+
+          <!-- Sección 180° - Sur (opuesto al norte) -->
+          <rect x="1600" y="0" width="800" height="600" fill="url(#wallGrad3)"/>
+          <path d="M1600 600 Q1680 390 1760 440 Q1840 350 1920 430 Q2000 370 2080 420 Q2160 340 2240 400 Q2320 360 2400 430 L2400 600Z" fill="#0e0c09"/>
+          <ellipse cx="1900" cy="430" rx="190" ry="85" fill="#18130e" opacity="0.8"/>
+          <ellipse cx="2250" cy="400" rx="150" ry="68" fill="#120e0a" opacity="0.7"/>
+          <!-- Figura antropomorfa estilo Vigirima en muro Sur -->
+          <g stroke="#352616" stroke-width="2" fill="none" opacity="0.28" transform="translate(2000,200)">
+            <ellipse cx="0" cy="-30" rx="22" ry="16"/>
+            <line x1="0" y1="-14" x2="0" y2="30"/>
+            <line x1="-25" y1="5" x2="-40" y2="20"/>
+            <line x1="25" y1="5" x2="40" y2="20"/>
+            <line x1="-12" y1="30" x2="-12" y2="65"/>
+            <line x1="12" y1="30" x2="12" y2="65"/>
+          </g>
+
+          <!-- Sección 270° - Oeste -->
+          <rect x="2400" y="0" width="800" height="600" fill="url(#wallGrad1)"/>
+          <path d="M2400 600 Q2480 380 2560 430 Q2640 340 2720 400 Q2800 350 2880 420 Q2960 370 3040 410 Q3120 330 3200 400 L3200 600Z" fill="#12100d"/>
+          <ellipse cx="2650" cy="425" rx="175" ry="78" fill="#1b140f" opacity="0.75"/>
+          <ellipse cx="3000" cy="395" rx="155" ry="72" fill="#14110d" opacity="0.68"/>
+          <!-- Menhir grabado en muro Oeste -->
+          <g stroke="#2f2014" stroke-width="2" fill="none" opacity="0.32" transform="translate(2800,180)">
+            <rect x="-15" y="0" width="30" height="100" rx="5"/>
+            <path d="M-10 20 L10 20 M-10 40 L10 40 M-8 60 L8 60"/>
+          </g>
+
+          <!-- Techo rocoso (stalactitas) -->
+          <path d="M0 0 Q100 60 200 20 Q300 70 400 25 Q500 80 600 30 Q700 65 800 15 Q900 75 1000 25 Q1100 70 1200 20 Q1300 80 1400 25 Q1500 70 1600 20 Q1700 75 1800 25 Q1900 65 2000 20 Q2100 80 2200 30 Q2300 70 2400 25 Q2500 75 2600 20 Q2700 65 2800 30 Q2900 70 3000 25 Q3100 60 3200 20 L3200 0Z" fill="#060503"/>
+          <!-- Suelo -->
+          <rect x="0" y="520" width="3200" height="80" fill="#1a1510"/>
+          <path d="M0 520 Q200 510 400 525 Q600 508 800 520 Q1000 512 1200 522 Q1400 510 1600 520 Q1800 515 2000 522 Q2200 510 2400 520 Q2600 512 2800 525 Q3000 510 3200 520" fill="none" stroke="#2a201a" stroke-width="4"/>
+        </svg>
+      </div>
+
+      <!-- === OBJETOS INTERACTIVOS: colocados a distintos ángulos del panorama === -->
+
+      <!-- CORRECTOS (elementos prehispánicos de Vigirima) -->
+      <!-- Fragmento de Menhir – Ángulo ~50° (200px en panorama de 3200px) -->
+      <div class="cave-item correct" data-id="tool1" style="left:500px; top:48%;">
+        <div class="item-glow correct-glow"></div>
+        <div class="item-icon-wrap">
+          <svg viewBox="0 0 60 90" width="48" height="72">
+            <defs><linearGradient id="mnhGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#4a3d2f"/><stop offset="100%" stop-color="#1e180f"/>
+            </linearGradient></defs>
+            <rect x="15" y="5" width="30" height="75" rx="8" fill="url(#mnhGrad)" stroke="#8a7050" stroke-width="1.5"/>
+            <line x1="20" y1="25" x2="40" y2="25" stroke="#c9a44a" stroke-width="1" opacity="0.7"/>
+            <line x1="18" y1="38" x2="42" y2="38" stroke="#c9a44a" stroke-width="1" opacity="0.6"/>
+            <circle cx="30" cy="52" r="6" fill="none" stroke="#c9a44a" stroke-width="1.2" opacity="0.8"/>
+          </svg>
+        </div>
+        <div class="item-label">Fragmento de Menhir</div>
+        <div class="item-era">Prehispánico · Vigirima</div>
+      </div>
+
+      <!-- Concha ritual (fotuto) – Ángulo ~135° (1350px) -->
+      <div class="cave-item correct" data-id="tool2" style="left:1380px; top:38%;">
+        <div class="item-glow correct-glow"></div>
+        <div class="item-icon-wrap">
+          <svg viewBox="0 0 70 60" width="56" height="48">
+            <path d="M10 45 Q5 20 25 10 Q50 2 60 20 Q68 38 50 50 Q30 58 10 45Z" fill="#c8a87a" stroke="#a07040" stroke-width="1.5"/>
+            <path d="M20 40 Q18 25 30 18 Q44 13 52 25" fill="none" stroke="#e8c89a" stroke-width="1.2"/>
+            <path d="M15 42 Q22 48 35 47" fill="none" stroke="#b09060" stroke-width="1"/>
+            <circle cx="25" cy="38" r="3" fill="#f0d8a0" opacity="0.7"/>
+          </svg>
+        </div>
+        <div class="item-label">Concha Ritual (Fotuto)</div>
+        <div class="item-era">Prehispánico · Caribe</div>
+      </div>
+
+      <!-- Petroglifo fragmentado – Ángulo ~220° (2200px) -->
+      <div class="cave-item correct" data-id="tool3" style="left:2240px; top:55%;">
+        <div class="item-glow correct-glow"></div>
+        <div class="item-icon-wrap">
+          <svg viewBox="0 0 70 70" width="56" height="56">
+            <defs><radialGradient id="pgGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#2c2318"/><stop offset="100%" stop-color="#100d09"/>
+            </radialGradient></defs>
+            <polygon points="35,5 65,25 60,60 10,62 5,28" fill="url(#pgGrad)" stroke="#5a4025" stroke-width="1.5"/>
+            <g stroke="#e5b253" stroke-width="2" fill="none">
+              <ellipse cx="35" cy="30" rx="16" ry="12"/>
+              <circle cx="28" cy="28" r="3"/>
+              <circle cx="42" cy="28" r="3"/>
+              <path d="M35 30 L35 36 M30 42 Q35 46 40 42"/>
+            </g>
+          </svg>
+        </div>
+        <div class="item-label">Petroglifo Fragmentado</div>
+        <div class="item-era">Prehispánico · Piedra Pintada</div>
+      </div>
+
+      <!-- DISTRACTORES (objetos de otras épocas) -->
+      <!-- Moneda colonial – Ángulo ~25° -->
+      <div class="cave-item distractor" data-id="d1" style="left:240px; top:62%;">
+        <div class="item-glow distractor-glow"></div>
+        <div class="item-icon-wrap">
+          <svg viewBox="0 0 60 60" width="48" height="48">
+            <circle cx="30" cy="30" r="26" fill="#b8860b" stroke="#8b6914" stroke-width="2"/>
+            <circle cx="30" cy="30" r="20" fill="none" stroke="#d4a017" stroke-width="1"/>
+            <text x="30" y="34" text-anchor="middle" font-size="14" fill="#f5c842" font-family="serif">R</text>
+          </svg>
+        </div>
+        <div class="item-label">Moneda Colonial</div>
+        <div class="item-era">⚠ Época Colonial</div>
+      </div>
+
+      <!-- Lata moderna – Ángulo ~100° -->
+      <div class="cave-item distractor" data-id="d2" style="left:1020px; top:60%;">
+        <div class="item-glow distractor-glow"></div>
+        <div class="item-icon-wrap">
+          <svg viewBox="0 0 50 70" width="40" height="56">
+            <rect x="10" y="10" width="30" height="55" rx="4" fill="#c0c0c0" stroke="#808080" stroke-width="1.5"/>
+            <rect x="10" y="10" width="30" height="10" fill="#e0e0e0" rx="4"/>
+            <text x="25" y="45" text-anchor="middle" font-size="8" fill="#555">MODERN</text>
+          </svg>
+        </div>
+        <div class="item-label">Lata Moderna</div>
+        <div class="item-era">⚠ Época Contemporánea</div>
+      </div>
+
+      <!-- Celular – Ángulo ~175° -->
+      <div class="cave-item distractor" data-id="d3" style="left:1770px; top:45%;">
+        <div class="item-glow distractor-glow"></div>
+        <div class="item-icon-wrap">
+          <svg viewBox="0 0 45 75" width="36" height="60">
+            <rect x="5" y="5" width="35" height="65" rx="6" fill="#222" stroke="#444" stroke-width="1.5"/>
+            <rect x="9" y="10" width="27" height="48" fill="#1a3a5c"/>
+            <circle cx="22" cy="63" r="3" fill="#555"/>
+          </svg>
+        </div>
+        <div class="item-label">Celular</div>
+        <div class="item-era">⚠ Época Contemporánea</div>
+      </div>
+
+      <!-- Botella plástica – Ángulo ~300° -->
+      <div class="cave-item distractor" data-id="d4" style="left:3060px; top:55%;">
+        <div class="item-glow distractor-glow"></div>
+        <div class="item-icon-wrap">
+          <svg viewBox="0 0 40 80" width="32" height="64">
+            <path d="M15 15 Q10 20 10 35 L10 65 Q10 70 20 70 Q30 70 30 65 L30 35 Q30 20 25 15Z" fill="rgba(150,220,255,0.6)" stroke="#80b8d8" stroke-width="1.5"/>
+            <rect x="14" y="8" width="12" height="10" rx="3" fill="#90d0e8" stroke="#60a8c8" stroke-width="1"/>
+          </svg>
+        </div>
+        <div class="item-label">Botella Plástica</div>
+        <div class="item-era">⚠ Época Contemporánea</div>
+      </div>
+
+    </div><!-- /cave-panorama -->
+  </div><!-- /cave-panorama-wrapper -->
+
+  <!-- Linterna (efecto de luz) -->
+  <div class="flashlight" id="flashlight"></div>
+  <!-- Oscuridad total (máscara con agujero donde está la linterna) -->
+  <canvas class="darkness-canvas" id="darkness-canvas"></canvas>
+
+  <!-- Instrucciones iniciales (desaparece al mover) -->
+  <div class="cave-instructions" id="cave-instructions">
+    <div class="cave-instr-icon">🔦</div>
+    <div>
+      <strong>Mueve tu linterna</strong> arrastrando el ratón o con el dedo.<br>
+      Gira <strong>360°</strong> buscando los 3 elementos arqueológicos de Vigirima.<br>
+      <span style="color:#ff8888;">⚠ No toques objetos de otras épocas o perderás tiempo.</span>
+    </div>
+  </div>
+
+  <!-- Petroglifo revelado al ganar -->
+  <div class="hidden-petroglyph" id="hidden-petroglyph">
+    <svg viewBox="0 0 240 240" width="200" height="200">
+      <defs>
+        <radialGradient id="petroRevGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#2c3746"/>
+          <stop offset="100%" stop-color="#0d1018"/>
+        </radialGradient>
+        <filter id="glowFilter">
+          <feGaussianBlur stdDeviation="4" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <ellipse cx="120" cy="120" rx="115" ry="115" fill="url(#petroRevGrad)" stroke="#e5b253" stroke-width="2" opacity="0.5"/>
+      <g stroke="#e5b253" stroke-width="4" stroke-linecap="round" fill="none" filter="url(#glowFilter)">
+        <!-- Tocado -->
+        <path d="M120 50 L120 30 M100 55 L88 35 M140 55 L152 35"/>
+        <path d="M78 72 Q120 42 162 72" stroke-width="5"/>
+        <!-- Cara -->
+        <ellipse cx="120" cy="100" rx="40" ry="30" stroke-width="5"/>
+        <circle cx="105" cy="97" r="7"/>
+        <circle cx="135" cy="97" r="7"/>
+        <circle cx="105" cy="97" r="3" fill="#e5b253"/>
+        <circle cx="135" cy="97" r="3" fill="#e5b253"/>
+        <!-- Cuerpo -->
+        <path d="M80 112 Q62 124 65 148 Q68 162 83 157"/>
+        <path d="M160 112 Q178 124 175 148 Q172 162 157 157"/>
+        <path d="M92 132 L92 185 Q120 195 148 185 L148 132" stroke-width="5"/>
+        <!-- Surcos de lluvia -->
+        <path d="M106 148 L106 215" stroke="#ffd679" stroke-width="4"/>
+        <path d="M120 143 L120 222" stroke="#ffd679" stroke-width="5"/>
+        <path d="M134 148 L134 215" stroke="#ffd679" stroke-width="4"/>
+      </g>
+    </svg>
+    <div class="petro-label">✦ Diosa de la Lluvia · Petroglifo Revelado ✦</div>
+  </div>
+
+</div>
+
+  <!-- Píldora de controles en teclado / ratón -->
+  <div class="hud-controls-hint">
+    <span>Moverse:</span>
+    <span class="key-tag">A</span> <span class="key-tag">D</span> o <span class="key-tag">◄</span> <span class="key-tag">►</span>
+    <span>• O haz clic en el suelo para caminar</span>
+  </div>
+
+  <!-- Botones de movimiento táctil para celulares -->
+  <div class="mobile-dpad">
+    <button class="dpad-btn" id="dpad-left">◄</button>
+    <button class="dpad-btn" id="dpad-right">►</button>
+  </div>
+
+  <!-- Notificación emergente de pista narrativa -->
+  <div class="clue-notification-toast" id="clue-toast">
+    <span class="clue-toast-icon" id="toast-icon">✦</span>
+    <div>
+      <div class="clue-toast-title" id="toast-title" style="font-family: var(--font-serif); font-size: 13px; color: var(--gold-primary); font-weight: bold; margin-bottom: 2px;"></div>
+      <div class="clue-toast-text" id="clue-toast-text" style="font-size: 12px; color: #e2e8f0; line-height: 1.4;"></div>
+    </div>
+  </div>
+
+  <!-- Pantalla roja de Ataque del Espíritu Maligno -->
+  <div id="spirit-attack-overlay" class="spirit-attack-overlay">
+    <div class="spirit-demon-visual">
+      <svg viewBox="0 0 120 120" class="spirit-demon-svg">
+        <circle cx="60" cy="60" r="50" fill="#200000" stroke="#ff2200" stroke-width="4"/>
+        <path d="M 30 20 L 45 45 M 90 20 L 75 45" stroke="#ff4400" stroke-width="6" stroke-linecap="round"/>
+        <polygon points="40,55 50,45 60,55" fill="#ff0000"/>
+        <polygon points="80,55 70,45 60,55" fill="#ff0000"/>
+        <ellipse cx="45" cy="52" rx="7" ry="5" fill="#fff"/>
+        <ellipse cx="75" cy="52" rx="7" ry="5" fill="#fff"/>
+        <circle cx="45" cy="52" r="3" fill="#000"/>
+        <circle cx="75" cy="52" r="3" fill="#000"/>
+        <path d="M 35 75 Q 60 95 85 75" fill="none" stroke="#ff2200" stroke-width="5"/>
+        <path d="M 42 75 L 45 83 M 52 77 L 55 85 M 65 77 L 68 85 M 78 75 L 75 83" stroke="#fff" stroke-width="3"/>
+      </svg>
+    </div>
+    <div class="spirit-attack-message" id="spirit-attack-message">¡EL ESPÍRITU DE LA SEQUÍA TE ATACA!</div>
+  </div>
+
+  <!-- =========================================================================
+       4. PANTALLA ÉPICA DE VICTORIA DEL NIVEL 1
+       ========================================================================= -->
+  <div id="victory-modal" role="dialog" aria-modal="true">
+    <div class="victory-box">
+      <svg class="victory-emblem" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="4">
+        <circle cx="50" cy="50" r="44" stroke-dasharray="6 4"/>
+        <ellipse cx="50" cy="40" rx="24" ry="18"/>
+        <path d="M 50 40 L 50 48 M 44 54 Q 50 58 56 54"/>
+        <path d="M 38 60 L 38 90 M 50 60 L 50 94 M 62 60 L 62 90" stroke-width="4"/>
+      </svg>
+
+      <div style="font-family: var(--font-serif); font-size: 13px; color: var(--gold-primary); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px;">
+        Patrimonio Prehispánico Rescatado
+      </div>
+
+      <h2 class="victory-title">¡Nivel 1 Completado con Éxito!</h2>
+      
+      <p class="victory-desc">
+        Has restaurado la Diosa de las Lluvias, consagrado el Ciclo Sagrado del Agua y derrotado al temible Espíritu de la Sequía levantando los Menhires de Piedra Pintada. La bendición del agua y el solsticio vuelve a bañar los valles ancestrales de Vigirima.
+      </p>
+
+      <div class="victory-dossier">
+        <div><strong>Yacimiento:</strong> Parque Arqueológico Piedra Pintada, Valle de Vigirima, Municipio Guacara, Estado Carabobo, Venezuela.</div>
+        <div><strong>Filiación Cultural:</strong> Cuenca del Lago de Valencia / Tacarigua (Fase Valencioide, 800 - 1500 d.C. • Arawak y Caribe).</div>
+        <div><strong>Megalitismo Rescatado:</strong> Hileras de menhires ceremoniales que marcaban la salida del sol en los solsticios para iniciar el ciclo agrícola del maíz y la yuca.</div>
+      </div>
+
+      <div style="display: flex; justify-content: center; gap: 14px;">
+        <button class="hud-btn" id="victory-explore-btn" style="border-color: var(--gold-primary); color: var(--gold-glow); padding: 12px 22px;">
+          ✦ Explorar el Valle Libremente
+        </button>
+        <button class="hud-btn" id="victory-restart-btn" style="padding: 12px 20px;">
+          ↺ Volver a Jugar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lógica y motor 2.5D autónomo (compatible con doble clic directo y servidor local) -->
+  <script src="js/bundle2d.js"></script>
+
+  <script>
+  // =========================================================================
+  // BÚSQUEDA ARQUEOLÓGICA NOCTURNA (ZONA 3) - INYECCIÓN PERMANENTE
+  // =========================================================================
+  (function() {
+    let gameTriggered = false;
+
+    function startNightSearch() {
+      if (document.getElementById("vigirima-night-game") || gameTriggered) return;
+      gameTriggered = true;
+
+      // Limpiar por si acaso quedaron elementos huerfanos
+      document.getElementById("vigirima-night-game")?.remove();
+      document.getElementById("vigirima-counter")?.remove();
+      document.getElementById("vigirima-result")?.remove();
+
+      // ===== CAPA PRINCIPAL =====
+      const game = document.createElement("div");
+      game.id = "vigirima-night-game";
+      game.style.cssText = `
+        position: fixed; inset: 0; z-index: 99999;
+        background: #020101; overflow: hidden; cursor: none;
+      `;
+      document.body.appendChild(game);
+
+      // ===== CANVAS OSCURIDAD =====
+      const canvas = document.createElement("canvas");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;";
+      game.appendChild(canvas);
+      const ctx = canvas.getContext("2d");
+
+      // ===== LINTERNA =====
+      const light = document.createElement("div");
+      light.style.cssText = `
+        position: absolute; width: 14px; height: 14px; border-radius: 50%;
+        background: rgba(255,240,180,0.95); pointer-events: none;
+        transform: translate(-50%,-50%); z-index: 20;
+        box-shadow: 0 0 12px 6px rgba(255,230,150,0.7);
+      `;
+      game.appendChild(light);
+
+      // ===== CONTADOR =====
+      const counter = document.createElement("div");
+      counter.id = "vigirima-counter";
+      counter.style.cssText = `
+        position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+        background: rgba(0,0,0,0.9); border: 1px solid #c9a227; color: #ffd700;
+        font-family: Cinzel, serif; font-size: 16px; padding: 10px 26px;
+        border-radius: 25px; z-index: 100000; pointer-events: none;
+      `;
+      document.body.appendChild(counter);
+
+      let selected = [];
+      let finished = false;
+
+      function updateCounter() {
+        counter.textContent = `Seleccionados: ${selected.length} / 3`;
+      }
+      updateCounter();
+
+      // ===== OBJETOS (4 correctos + 8 distractores) =====
+      const objects = [
+        { name: "Fragmento de Menhir", correct: true,  icon: "🗿" },
+        { name: "Concha Ritual",       correct: true,  icon: "🐚" },
+        { name: "Petroglifo",          correct: true,  icon: "✧" },
+        { name: "Hacha de Piedra",     correct: true,  icon: "🪓" },
+        { name: "Moneda Colonial",     correct: false, icon: "🪙" },
+        { name: "Lata Moderna",        correct: false, icon: "🥫" },
+        { name: "Botella Plástica",    correct: false, icon: "🧴" },
+        { name: "Clavo de Hierro",     correct: false, icon: "📌" },
+        { name: "Botón de Metal",      correct: false, icon: "🔘" },
+        { name: "Trozo de Vidrio",     correct: false, icon: "🪟" },
+        { name: "Restos de Tela",      correct: false, icon: "🧵" },
+        { name: "Cerámica Rota",       correct: false, icon: "🏺" }
+      ];
+
+      const positions = [
+        {left: "13%", top: "25%"}, {left: "28%", top: "18%"}, {left: "46%", top: "23%"},
+        {left: "65%", top: "20%"}, {left: "82%", top: "28%"}, {left: "15%", top: "48%"},
+        {left: "35%", top: "45%"}, {left: "55%", top: "52%"}, {left: "75%", top: "47%"},
+        {left: "20%", top: "70%"}, {left: "48%", top: "73%"}, {left: "72%", top: "68%"}
+      ];
+
+      objects.forEach((obj, i) => {
+        const pos = positions[i];
+        const item = document.createElement("div");
+        item.className = "v-item";
+        item.dataset.correct = obj.correct;
+        item.dataset.name = obj.name;
+
+        item.style.cssText = `
+          position: absolute; left: ${pos.left}; top: ${pos.top};
+          transform: translate(-50%, -50%); width: 100px; text-align: center;
+          cursor: pointer; opacity: 0.02; transition: opacity 0.2s, transform 0.15s; z-index: 10;
+        `;
+
+        item.innerHTML = `
+          <div style="
+            width: 68px; height: 68px; margin: 0 auto 6px;
+            background: rgba(30,22,12,0.92); border: 2px solid rgba(229,178,83,0.5);
+            border-radius: 14px; display: flex; align-items: center; justify-content: center;
+            font-size: 32px; box-shadow: 0 0 12px rgba(0,0,0,0.6);
+          ">${obj.icon}</div>
+          <div style="
+            font-family: Cinzel, serif; font-size: 11px; color: #e5b253;
+            background: rgba(0,0,0,0.88); padding: 4px 8px; border-radius: 6px;
+            white-space: nowrap;
+          ">${obj.name}</div>
+        `;
+
+        item.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (finished) return;
+          if (parseFloat(item.style.opacity) < 0.4) return;
+
+          const name = obj.name;
+          const already = selected.find(s => s.name === name);
+
+          if (already) {
+            selected = selected.filter(s => s.name !== name);
+            item.style.outline = "none";
+            item.style.transform = "translate(-50%, -50%) scale(1)";
+          } else {
+            if (selected.length >= 3) return;
+            selected.push({ name, correct: obj.correct });
+            item.style.outline = "3px solid #ffd700";
+            item.style.outlineOffset = "5px";
+            item.style.transform = "translate(-50%, -50%) scale(1.08)";
+          }
+          updateCounter();
+
+          if (selected.length === 3) {
+            setTimeout(showResult, 500);
+          }
+        });
+
+        // Soporte para toque en pantallas móviles
+        item.addEventListener("touchend", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          item.click();
+        });
+
+        game.appendChild(item);
+      });
+
+      // ===== OSCURIDAD =====
+      function draw(x, y) {
+        const radius = 155;
+        ctx.globalCompositeOperation = "source-over";
+        ctx.fillStyle = "rgba(2,1,1,0.97)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        grad.addColorStop(0, "rgba(0,0,0,1)");
+        grad.addColorStop(0.35, "rgba(0,0,0,0.7)");
+        grad.addColorStop(0.8, "rgba(0,0,0,0.95)");
+        grad.addColorStop(1, "rgba(0,0,0,0)");
+
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function updateTorch(x, y) {
+        light.style.left = x + "px";
+        light.style.top = y + "px";
+        draw(x, y);
+
+        document.querySelectorAll(".v-item").forEach(item => {
+          const rect = item.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const dist = Math.hypot(cx - x, cy - y);
+          item.style.opacity = dist < 135 ? "1" : "0.02";
+        });
+      }
+
+      game.addEventListener("mousemove", (e) => {
+        updateTorch(e.clientX, e.clientY);
+      });
+
+      game.addEventListener("touchmove", (e) => {
+        if (e.touches && e.touches[0]) {
+          e.preventDefault();
+          updateTorch(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: false });
+
+      draw(window.innerWidth / 2, window.innerHeight / 2);
+
+      // ===== PANTALLA DE EXPLICACIÓN INICIAL =====
+      const introModal = document.createElement("div");
+      introModal.style.cssText = `
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        background: rgba(8,5,3,0.96); border: 1px solid #c9a227; border-radius: 16px;
+        padding: 28px 36px; color: #e5b253; font-family: Cinzel, serif; text-align: center;
+        z-index: 100001; max-width: 400px; line-height: 1.5; box-shadow: 0 0 40px rgba(0,0,0,0.8);
+      `;
+      introModal.innerHTML = `
+        <div style="font-size:22px;margin-bottom:12px;color:#ffd700;">Búsqueda Arqueológica Nocturna</div>
+        <div style="font-size:14px;margin-bottom:18px;color:#e2e8f0;">
+          Has llegado al Abrigo Rocoso.<br>
+          Mueve la linterna para iluminar y selecciona exactamente <strong>3 piezas prehispánicas</strong> evitando los objetos modernos.
+        </div>
+        <button id="start-night-btn" style="padding:10px 28px;background:transparent;border:1px solid #ffd700;color:#ffd700;border-radius:8px;font-family:Cinzel,serif;cursor:pointer;font-size:14px;">Comenzar Búsqueda</button>
+      `;
+      document.body.appendChild(introModal);
+      document.getElementById("start-night-btn").onclick = () => introModal.remove();
+
+      // ===== RESULTADO CON DRAMA =====
+      function showResult() {
+        finished = true;
+        counter.style.display = "none";
+
+        const correctCount = selected.filter(s => s.correct).length;
+        const won = correctCount === 3;
+
+        // Temblor de pantalla
+        game.style.transition = "transform 0.08s";
+        let shakes = 0;
+        const shakeInterval = setInterval(() => {
+          const x = (Math.random() - 0.5) * (won ? 6 : 14);
+          const y = (Math.random() - 0.5) * (won ? 6 : 14);
+          game.style.transform = `translate(${x}px, ${y}px)`;
+          shakes++;
+          if (shakes > (won ? 8 : 18)) {
+            clearInterval(shakeInterval);
+            game.style.transform = "translate(0,0)";
+          }
+        }, 40);
+
+        const result = document.createElement("div");
+        result.style.cssText = `
+          position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+          background: rgba(8,5,3,0.97); border: 2px solid ${won ? "#ffd700" : "#ff3333"};
+          border-radius: 18px; padding: 40px 50px; color: ${won ? "#ffd700" : "#ff8888"};
+          font-family: Cinzel, serif; font-size: 22px; text-align: center;
+          z-index: 100001; max-width: 420px; line-height: 1.5;
+          box-shadow: 0 0 60px ${won ? "rgba(255,215,0,0.4)" : "rgba(255,0,0,0.5)"};
+        `;
+
+        if (won) {
+          result.innerHTML = `
+            <div style="font-size:52px;margin-bottom:14px;">✦</div>
+            <div style="font-weight:bold;margin-bottom:12px;font-size:26px;">¡Lo lograste!</div>
+            <div style="font-size:15px;color:#e5b253;margin-bottom:8px;">
+              Has recuperado las piezas sagradas de Vigirima.<br>
+              El conocimiento ancestral vuelve a la luz.
+            </div>
+          `;
+        } else {
+          result.innerHTML = `
+            <div style="font-size:52px;margin-bottom:14px;">☠</div>
+            <div style="font-weight:bold;margin-bottom:12px;font-size:26px;">Has fallado</div>
+            <div style="font-size:15px;color:#ffaaaa;margin-bottom:8px;">
+              Elegiste objetos de otras épocas.<br>
+              El Espíritu de la Sequía ha despertado...
+            </div>
+          `;
+
+          // Activar espíritu maligno
+          const spirit = document.getElementById("spirit-attack-overlay");
+          if (spirit) {
+            spirit.classList.add("active");
+            setTimeout(() => spirit.classList.remove("active"), 3000);
+          }
+          document.body.classList.add("spirit-attack");
+          setTimeout(() => document.body.classList.remove("spirit-attack"), 3000);
+        }
+
+        const btn = document.createElement("button");
+        btn.textContent = won ? "Continuar" : "Intentar de nuevo";
+        btn.style.cssText = `
+          margin-top: 24px; padding: 12px 32px; background: transparent;
+          border: 1px solid ${won ? "#ffd700" : "#ff5555"}; color: ${won ? "#ffd700" : "#ff8888"};
+          border-radius: 8px; font-family: Cinzel, serif; cursor: pointer; font-size: 15px;
+        `;
+        btn.onclick = () => {
+          result.remove();
+          if (!won) {
+            // Reiniciar minijuego en caso de fallo
+            selected = [];
+            finished = false;
+            counter.style.display = "block";
+            updateCounter();
+            document.querySelectorAll(".v-item").forEach(item => {
+              item.style.outline = "none";
+              item.style.transform = "translate(-50%, -50%) scale(1)";
+            });
+          } else {
+            // Victoria → Cerrar minijuego y abrir modal de victoria del nivel
+            game.remove();
+            counter.remove();
+            if (window.game) {
+              window.game.state.caveActive = false;
+              window.game.state.z3 = true;
+            }
+            const victory = document.getElementById("victory-modal");
+            if (victory) {
+              victory.classList.add("active");
+            }
+          }
+        };
+        result.appendChild(btn);
+        document.body.appendChild(result);
+      }
+    }
+
+    window.startNightSearch = startNightSearch;
+
+    // 1. Activar al hacer clic en el botón existente de la interfaz
+    document.addEventListener("click", (e) => {
+      if (e.target.closest("#btn-enter-cave") || e.target.closest(".enter-cave-btn")) {
+        e.preventDefault();
+        e.stopPropagation();
+        startNightSearch();
+      }
+    });
+
+    // 2. Activar automáticamente al caminar hacia el este (cuando el jugador supera los 2600px)
+    const checkWalkingTrigger = setInterval(() => {
+      const player = document.getElementById("player-avatar");
+      if (player) {
+        const leftPos = parseFloat(player.style.left) || 0;
+        if (leftPos > 2600) {
+          clearInterval(checkWalkingTrigger);
+          startNightSearch();
+        }
+      }
+    }, 1000);
+  })();
+  </script>
+</body>
+</html>
