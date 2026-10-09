@@ -1914,3 +1914,30 @@ body {
   #vigirima-night-game { touch-action: none; }
 }
 
+/* ==========================================================================
+   CORRECCIÓN DEFINITIVA PARA LA ZONA 3 EN MÓVILES
+   ========================================================================== */
+#cave-exploration {
+  touch-action: none; /* Evita el scroll nativo molesto al arrastrar la linterna */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.cave-panorama-wrapper {
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.cave-item {
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+/* Optimización táctil para los puntos del HUD */
+.v-item {
+  touch-action: manipulation;
+}
