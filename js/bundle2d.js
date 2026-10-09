@@ -441,6 +441,207 @@
 
     // ===================== ZONA 3 - BÚSQUEDA NOCTURNA =====================
 
+    // =========================================================================
+  // BÚSQUEDA ARQUEOLÓGICA NOCTURNA (ZONA 3) - SOPORTE MÓVIL Y PC UNIFICADO
+  // =========================================================================
+  function startNightSearch() {
+    const existingGame = document.getElementById("vigirima-night-game");
+    if (existingGame) return;
+
+    // Contenedor principal de la cueva
+    const game = document.createElement("div");
+    game.id = "vigirima-night-game";
+    game.style.cssText = `
+      position: fixed; inset: 0; z-index: 99999;
+      background: #020101; overflow: hidden; touch-action: none;
+    `;
+    document.body.appendChild(game);
+
+    // Canvas de oscuridad
+    const canvas = document.createElement("canvas");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.cssText = "position:absolute; inset:0; width:100%; height:100%; pointer-events:none;";
+    game.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+
+    // Indicador visual de la linterna
+    const light = document.createElement("div");
+    light.style.cssText = `
+      position: absolute; width: 60px; height: 60px; border-radius: 50%;
+      background: rgba(255,240,180,0.25); pointer-events: none;
+      transform: translate(-50%,-50%); z-index: 20;
+      box-shadow: 0 0 25px 15px rgba(255,230,150,0.5);
+    `;
+    game.appendChild(light);
+
+    // Contador superior
+    const counter = document.createElement("div");
+    counter.style.cssText = `
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.85); border: 1px solid #c9a227; color: #ffd700;
+      font-family: Cinzel, serif; font-size: 14px; padding: 8px 20px;
+      border-radius: 20px; z-index: 100000; pointer-events: none;
+    `;
+    counter.textContent = "Seleccionados: 0 / 3";
+    game.appendChild(counter);
+
+    let selected = [];
+    let finished = false;
+
+    // Objetos arqueológicos (4 correctos, 8 distractores)
+    const objects = [
+      { name: "Fragmento de Menhir", correct: true,  icon: "🗿", left: "15%", top: "30%" },
+      { name: "Concha Ritual",       correct: true,  icon: "🐚", left: "35%", top: "20%" },
+      { name: "Petroglifo",          correct: true,  icon: "✧",  left: "60%", top: "25%" },
+      { name: "Hacha de Piedra",     correct: true,  icon: "🪓", left: "80%", top: "35%" },
+      { name: "Moneda Colonial",     correct: false, icon: "🪙", left: "20%", top: "65%" },
+      { name: "Lata Moderna",        correct: false, icon: "🥫", left: "45%", top: "60%" },
+      { name: "Botella Plástica",    correct: false, icon: "🧴", left: "70%", top: "70%" },
+      { name: "Clavo de Hierro",     correct: false, icon: "📌", left: "10%", top: "50%" }
+    ];
+
+    objects.forEach((obj) => {
+      const item = document.createElement("div");
+      item.style.cssText = `
+        position: absolute; left: ${obj.left}; top: ${obj.top};
+        transform: translate(-50%, -50%); width: 85px; text-align: center;
+        cursor: pointer; opacity: 0.03; transition: opacity 0.2s, transform 0.15s; z-index: 10;
+        touch-action: manipulation;
+      `;
+      item.innerHTML = `
+        <div style="
+          width: 55px; height: 55px; margin: 0 auto 4px;
+          background: rgba(25,18,10,0.95); border: 2px solid #e5b253;
+          border-radius: 12px; display: flex; align-items: center; justify-content: center;
+          font-size: 26px; box-shadow: 0 0 10px rgba(0,0,0,0.8);
+        ">${obj.icon}</div>
+        <div style="
+          font-family: Cinzel, serif; font-size: 9.5px; color: #e5b253;
+          background: rgba(0,0,0,0.9); padding: 3px 6px; border-radius: 4px;
+          white-space: nowrap;
+        ">${obj.name}</div>
+      `;
+
+      // Evento unificado para PC y Celular (PointerDown / Click)
+      const handleSelect = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (finished || parseFloat(item.style.opacity) < 0.4) return;
+
+        const exists = selected.find(s => s.name === obj.name);
+        if (exists) {
+          selected = selected.filter(s => s.name !== obj.name);
+          item.style.outline = "none";
+          item.style.transform = "translate(-50%, -50%) scale(1)";
+        } else {
+          if (selected.length >= 3) return;
+          selected.push(obj);
+          item.style.outline = "3px solid #ffd700";
+          item.style.outlineOffset = "3px";
+          item.style.transform = "translate(-50%, -50%) scale(1.1)";
+        }
+        counter.textContent = `Seleccionados: ${selected.length} / 3`;
+
+        if (selected.length === 3) {
+          setTimeout(showResult, 400);
+        }
+      };
+
+      item.addEventListener("pointerdown", handleSelect);
+      game.appendChild(item);
+    });
+
+    // Función de renderizado de oscuridad con linterna
+    function drawLight(x, y) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "rgba(2, 1, 1, 0.98)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const radius = 130;
+      const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
+      grad.addColorStop(0, "rgba(0,0,0,1)");
+      grad.addColorStop(0.4, "rgba(0,0,0,0.8)");
+      grad.addColorStop(1, "rgba(0,0,0,0)");
+
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    // Movimiento unificado (Ratón y Dáctil en Celular)
+    const handleMove = (clientX, clientY) => {
+      light.style.left = clientX + "px";
+      light.style.top = clientY + "px";
+      drawLight(clientX, clientY);
+
+      // Revelar elementos bajo el haz de luz
+      game.querySelectorAll("div[style*='position: absolute']").forEach(item => {
+        if (!item.dataset || item === light || item === counter) return;
+        const rect = item.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dist = Math.hypot(cx - clientX, cy - clientY);
+        item.style.opacity = dist < 120 ? "1" : "0.03";
+      });
+    };
+
+    game.addEventListener("pointermove", (e) => {
+      handleMove(e.clientX, e.clientY);
+    });
+
+    // Iniciar luz en el centro por defecto
+    drawLight(window.innerWidth / 2, window.innerHeight / 2);
+
+    function showResult() {
+      finished = true;
+      counter.style.display = "none";
+      const correctCount = selected.filter(s => s.correct).length;
+      const won = (correctCount === 3);
+
+      const modal = document.createElement("div");
+      modal.style.cssText = `
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        background: rgba(8,5,3,0.98); border: 2px solid ${won ? "#ffd700" : "#ff3333"};
+        border-radius: 16px; padding: 30px 40px; color: #fff;
+        font-family: Cinzel, serif; text-align: center; z-index: 100002;
+        max-width: 380px; box-shadow: 0 0 40px rgba(0,0,0,0.9);
+      `;
+      modal.innerHTML = `
+        <div style="font-size: 24px; color: ${won ? "#ffd700" : "#ff5555"}; margin-bottom: 10px;">
+          ${won ? "¡Búsqueda Exitosa!" : "¡Has Fallado!"}
+        </div>
+        <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 20px;">
+          ${won ? "Has hallado las reliquias auténticas de Vigirima." : "Seleccionaste elementos incorrectos o modernos."}
+        </div>
+        <button id="close-cave-res" style="padding: 10px 24px; background: transparent; border: 1px solid ${won ? "#ffd700" : "#ff5555"}; color: ${won ? "#ffd700" : "#ff5555"}; border-radius: 6px; font-family: Cinzel, serif; cursor: pointer;">
+          ${won ? "Continuar con la Victoria" : "Intentar Nuevamente"}
+        </button>
+      `;
+      document.body.appendChild(modal);
+
+      document.getElementById("close-cave-res").onclick = () => {
+        modal.remove();
+        game.remove();
+        counter.remove();
+        if (won) {
+          document.getElementById("victory-modal")?.classList.add("active");
+        }
+      };
+    }
+  }
+
+  // Vincular apertura de cueva tanto por botón como por posición del jugador
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("#btn-enter-cave") || e.target.closest(".enter-cave-btn")) {
+      e.preventDefault();
+      startNightSearch();
+    }
+  });
+
   }
 
   document.addEventListener("DOMContentLoaded", () => {
