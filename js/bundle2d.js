@@ -147,7 +147,6 @@
         this.dom.victory?.classList.remove("active");
       });
 
-      // Botón de la cueva
       document.addEventListener("click", (e) => {
         const btn = e.target.closest("#btn-enter-cave") || e.target.closest(".enter-cave-btn");
         if (!btn) return;
@@ -301,23 +300,22 @@
         el.innerHTML = `<div style="position:absolute;width:280px;height:280px;transform:translate(${ox}px,${oy}px);pointer-events:none;">${this.getDiosaSVG()}</div>`;
         cont.appendChild(el);
 
-if (typeof Draggable !== "undefined") {
+        if (typeof Draggable !== "undefined") {
           Draggable.create(el, {
             type: "x,y",
             allowEventDefault: true,
-            onPress: () => { sound.resume(); sound.drag(); el.classList.add("dragging"); el.style.zIndex = 1000; },
+            onPress: () => { sound.resume(); sound.drag(); el.classList.add("dragging"); el.style.zIndex = 5000; },
             onRelease: function () {
               el.classList.remove("dragging");
               const fr = frame.getBoundingClientRect();
               const pr = el.getBoundingClientRect();
-              // Aumentamos el radio de tolerancia a 90px para facilitar el calce táctil
-              if (Math.hypot(pr.left - (fr.left + p.tx), pr.top - (fr.top + p.ty)) < 90) {
+              if (Math.hypot(pr.left - (fr.left + p.tx), pr.top - (fr.top + p.ty)) < 95) {
                 sound.snap();
                 el.classList.add("snapped");
                 this.disable();
                 frame.appendChild(el);
-                // zIndex alto para que quede por DELANTE de la guía
-                gsap.set(el, {position: "absolute", left: p.tx, top: p.ty, x: 0, y: 0, width: 140, height: 93, zIndex: 99});
+                // Forzar zIndex alto para que quede POR DELANTE del marco
+                gsap.set(el, {position: "absolute", left: p.tx, top: p.ty, x: 0, y: 0, width: 140, height: 93, zIndex: 100});
                 window.game.checkZone1();
               } else {
                 window.game.triggerSpirit();
@@ -392,11 +390,11 @@ if (typeof Draggable !== "undefined") {
         card.style.cssText = "width:100px;height:110px;background:linear-gradient(145deg,#3a2e20,#221810);border:2px solid #c9a227;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;color:#e5b253;";
         pool.appendChild(card);
 
-  if (typeof Draggable !== "undefined") {
+        if (typeof Draggable !== "undefined") {
           Draggable.create(card, {
             type: "x,y",
             allowEventDefault: true,
-            onPress: () => { sound.resume(); sound.drag(); card.style.zIndex = 1000; },
+            onPress: () => { sound.resume(); sound.drag(); card.style.zIndex = 5000; },
             onRelease: function () {
               let placed = false;
               const cr = card.getBoundingClientRect();
@@ -407,10 +405,10 @@ if (typeof Draggable !== "undefined") {
                 if (slot.children.length > 0 || placed) return;
                 const sr = slot.getBoundingClientRect();
 
-                // Verificar si el centro de la tarjeta cae dentro o muy cerca de la ranura
+                // Ampliamos el rango de detección táctil (±35px) para garantizar respuesta perfecta en celulares
                 if (
-                  cardCenterX >= sr.left - 15 && cardCenterX <= sr.right + 15 &&
-                  cardCenterY >= sr.top - 15 && cardCenterY <= sr.bottom + 15
+                  cardCenterX >= sr.left - 35 && cardCenterX <= sr.right + 35 &&
+                  cardCenterY >= sr.top - 35 && cardCenterY <= sr.bottom + 35
                 ) {
                   const expected = parseInt(slot.dataset.pos);
                   if (parseInt(card.dataset.id) === expected) {
@@ -423,7 +421,7 @@ if (typeof Draggable !== "undefined") {
                     window.game.checkZone2();
                     placed = true;
                   } else {
-                    window.game.triggerSpirit();
+                    sound.triggerSpirit();
                     card.style.zIndex = 10;
                     gsap.to(card, {x: 0, y: 0, duration: 0.4});
                     placed = true;
@@ -451,15 +449,11 @@ if (typeof Draggable !== "undefined") {
       }
     }
 
-    // Auto-activar al caminar después de Zona 2
     checkEnterCave() {
       if (this.state.z2 && !this.state.caveActive && !this.state.z3 && this.player.x > 2600) {
         this.startCaveExploration();
       }
     }
-
-    // ===================== ZONA 3 - BÚSQUEDA NOCTURNA =====================
-
   }
 
   document.addEventListener("DOMContentLoaded", () => {
