@@ -301,25 +301,28 @@
         el.innerHTML = `<div style="position:absolute;width:280px;height:280px;transform:translate(${ox}px,${oy}px);pointer-events:none;">${this.getDiosaSVG()}</div>`;
         cont.appendChild(el);
 
-  if (typeof Draggable !== "undefined") {
+if (typeof Draggable !== "undefined") {
           Draggable.create(el, {
             type: "x,y",
-            allowEventDefault: true, // <-- ASEGÚRATE DE TENER ESTA LÍNEA
-            onPress: () => { sound.resume(); sound.drag(); el.classList.add("dragging"); },
+            allowEventDefault: true,
+            onPress: () => { sound.resume(); sound.drag(); el.classList.add("dragging"); el.style.zIndex = 1000; },
             onRelease: function () {
               el.classList.remove("dragging");
               const fr = frame.getBoundingClientRect();
               const pr = el.getBoundingClientRect();
-              if (Math.hypot(pr.left-(fr.left+p.tx), pr.top-(fr.top+p.ty)) < 75) {
+              // Aumentamos el radio de tolerancia a 90px para facilitar el calce táctil
+              if (Math.hypot(pr.left - (fr.left + p.tx), pr.top - (fr.top + p.ty)) < 90) {
                 sound.snap();
                 el.classList.add("snapped");
                 this.disable();
                 frame.appendChild(el);
-                gsap.set(el, {position:"absolute", left:p.tx, top:p.ty, x:0, y:0, width:140, height:93});
+                // zIndex alto para que quede por DELANTE de la guía
+                gsap.set(el, {position: "absolute", left: p.tx, top: p.ty, x: 0, y: 0, width: 140, height: 93, zIndex: 99});
                 window.game.checkZone1();
               } else {
                 window.game.triggerSpirit();
-                gsap.to(el, {x:0, y:0, duration:0.4});
+                el.style.zIndex = 10;
+                gsap.to(el, {x: 0, y: 0, duration: 0.4});
               }
             }
           });
@@ -392,32 +395,46 @@
   if (typeof Draggable !== "undefined") {
           Draggable.create(card, {
             type: "x,y",
-            allowEventDefault: true, // <-- ASEGÚRATE DE TENER ESTA LÍNEA
-            onPress: () => { sound.resume(); sound.drag(); },
+            allowEventDefault: true,
+            onPress: () => { sound.resume(); sound.drag(); card.style.zIndex = 1000; },
             onRelease: function () {
               let placed = false;
+              const cr = card.getBoundingClientRect();
+              const cardCenterX = cr.left + cr.width / 2;
+              const cardCenterY = cr.top + cr.height / 2;
+
               track.querySelectorAll(".order-slot").forEach(slot => {
-                if (slot.children.length > 0) return;
+                if (slot.children.length > 0 || placed) return;
                 const sr = slot.getBoundingClientRect();
-                const cr = card.getBoundingClientRect();
-                if (Math.hypot(cr.left - sr.left, cr.top - sr.top) < 70) {
+
+                // Verificar si el centro de la tarjeta cae dentro o muy cerca de la ranura
+                if (
+                  cardCenterX >= sr.left - 15 && cardCenterX <= sr.right + 15 &&
+                  cardCenterY >= sr.top - 15 && cardCenterY <= sr.bottom + 15
+                ) {
                   const expected = parseInt(slot.dataset.pos);
                   if (parseInt(card.dataset.id) === expected) {
                     sound.snap();
                     slot.appendChild(card);
                     slot.classList.add("filled");
-                    gsap.set(card, {x:0, y:0});
+                    gsap.set(card, {x: 0, y: 0, position: "relative", width: "100%", height: "100%", zIndex: 1});
                     this.disable();
                     window.game.state.z2Placed++;
                     window.game.checkZone2();
                     placed = true;
                   } else {
                     window.game.triggerSpirit();
-                    gsap.to(card, {x:0, y:0, duration:0.4});
+                    card.style.zIndex = 10;
+                    gsap.to(card, {x: 0, y: 0, duration: 0.4});
+                    placed = true;
                   }
                 }
               });
-              if (!placed) gsap.to(card, {x:0, y:0, duration:0.35});
+
+              if (!placed) {
+                card.style.zIndex = 10;
+                gsap.to(card, {x: 0, y: 0, duration: 0.35});
+              }
             }
           });
         }
