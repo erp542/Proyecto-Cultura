@@ -2061,3 +2061,78 @@ body {
     font-size: 10.5px;
   }
 }
+
+/* 1. Zona 1: Evitar que el monolito y sus piezas se corten por arriba */
+#zone-1-anchor {
+  top: 15vh;
+  bottom: auto;
+}
+
+.monolith-altar {
+  width: 280px;
+  height: 320px;
+  max-height: 50vh;
+}
+
+.monolith-frame {
+  width: 240px;
+  height: 240px;
+}
+
+.scattered-pieces-container {
+  max-height: 22vh;
+  overflow-y: auto;
+  padding-bottom: 10px;
+}
+
+/* 2. Zona 2 y Altar del Agua: Optimizar área táctil y scroll horizontal si es necesario */
+.water-cycle-altar {
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 16px 12px;
+}
+
+.altar-track {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 3. Adaptabilidad total para Teléfonos (Vertical y Horizontal) */
+@media screen and (max-width: 900px) {
+  /* En modo horizontal en celulares (landscape) */
+  @media screen and (orientation: landscape) {
+    #game-world-container {
+      height: 100vh;
+    }
+    .zone-anchor {
+      bottom: 90px;
+    }
+    .water-cycle-altar {
+      max-height: 75vh;
+      padding: 10px 14px;
+    }
+    .monolith-altar {
+      width: 240px;
+      height: 260px;
+    }
+  }
+
+  /* En modo vertical en celulares (portrait) */
+  @media screen and (orientation: portrait) {
+    #zone-1-anchor {
+      top: 12vh;
+    }
+    .water-cycle-altar {
+      width: 95vw;
+      padding: 12px 8px;
+    }
+    .order-slot {
+      width: 55px !important;
+      height: 65px !important;
+    }
+    .order-card {
+      width: 52px !important;
+      height: 62px !important;
+    }
+  }
+}
